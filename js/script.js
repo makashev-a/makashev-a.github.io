@@ -7,27 +7,23 @@ document.addEventListener('DOMContentLoaded', function () {
 		closeBtn = document.querySelector('.menu__close'),
 		menuOverlay = document.querySelector('.menu__overlay'),
 		body = document.body;
-		
+
 
 	hamburger.addEventListener('click', () => {
 		menu.classList.add('active');
-		body.classList.add('sidebar-open');
 	});
 
 	closeBtn.addEventListener('click', () => {
 		menu.classList.remove('active');
-		body.classList.remove('sidebar-open');
 	});
 
 	menuOverlay.addEventListener('click', () => {
 		menu.classList.remove('active');
-		body.classList.remove('sidebar-open');
 	});
 
 	window.addEventListener('keydown', (e) => {
 		if (e.key == 'Escape') {
 			menu.classList.remove('active');
-			body.classList.remove('sidebar-open');
 		}
 	});
 
@@ -82,6 +78,96 @@ document.addEventListener('DOMContentLoaded', function () {
 			handlerFired = 0;
 		}
 
+	});
+
+	// Smooth scrolling and page-up
+
+	const pageUp = document.querySelector('.page-up');
+	window.addEventListener('scroll', () => {
+		if (window.scrollY > window.innerHeight) {
+			pageUp.classList.add('page-up_active');
+		} else if (window.scrollY < window.innerHeight) {
+			pageUp.classList.remove('page-up_active');
+		}
+	});
+
+	document.querySelectorAll('a[href^="#"').forEach(link => {
+
+		link.addEventListener('click', function (e) {
+			e.preventDefault();
+
+			let href = this.getAttribute('href').substring(1);
+
+			const scrollTarget = document.getElementById(href);
+
+			const topOffset = 0;
+			const elementPosition = scrollTarget.getBoundingClientRect().top;
+			const offsetPosition = elementPosition - topOffset;
+
+			window.scrollBy({
+				top: offsetPosition,
+				behavior: 'smooth'
+			});
+		});
+	});
+
+	//Modal
+
+	$('.modal__close').on('click', function () {
+		$('.overlay, #thanks').fadeOut();
+	});
+
+	$(window).on('click', function (e) {
+		if (e.target.classList.contains('overlay')) {
+			$('.overlay, #thanks').fadeOut();
+		}
+	});
+
+	//Validation
+
+	function validateForms(form) {
+		$(form).validate({
+		  rules: {
+			name: "required",
+			email: {
+			  required: true,
+			  email: true
+			},
+			policy: "required"
+		  },
+		  messages: {
+			name: "Пожалуйста, введите свое имя",
+			email: {
+			  required: "Пожалуйста, введите свой почту",
+			  email: "Неправильно введен адрес почты"
+			},
+			policy: "Пожалуйста, отметьте поле"
+		  }
+		});
+	  }
+	
+	  validateForms('#contact-form');
+
+	//Mailer
+
+	$('form').submit(function (e) {
+		e.preventDefault();
+
+		if (!$(this).valid()) {
+			return;
+		}
+
+		$.ajax({
+			type: "POST",
+			url: "mailer/smart.php",
+			data: $(this).serialize()
+		}).done(function () {
+			$(this).find("input").val("");
+			$('.overlay').fadeIn();
+			$('#thanks').css("display", "flex").hide().fadeIn();
+			$('form').trigger('reset');
+		});
+		return false;
 	});
 
 });
